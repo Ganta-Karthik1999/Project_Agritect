@@ -1,10 +1,14 @@
 cc := gcc
-LIBS := -lwiringPi
+LIBS := 
 INCLUDES := -I inc
 SRCS := src/*.c
 
 all:
-	$(cc) $(SRCS) $(INCLUDES)  -o agribot
+	$(cc) $(SRCS) $(INCLUDES)  -o agribot $(LIBS)
+
+install:
+	sudo apt-get install libc6-dev valgrind
+
 
 run: all
 	./agribot

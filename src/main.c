@@ -3,22 +3,47 @@
 #include "motor.h"
 #include "init.h"
 #include "servo.h"
+#include "tcpserver.h"
+
+
+
+volatile sig_atomic_t running = 1;
+volatile int active_connections = 0;
+pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 int main() {
 
-    int fd = initI2CDevice(I2C_DEVICE, MDEV_ADDR);
-    if (fd < 0) {
-        return -1;
+    int sockfd =0, opt = 1;
+
+    //  Initilazing the TCP Socket check the socket_utils.c file for full functionality
+    if (socket_init(&sockfd, opt) != 0) {
+        fprintf(stderr, "Socket init failed\n");
+        return 1;
     }
 
-    printf(" The servo angle is %d \n",setServo1(fd, 90));
 
-    moveMotors(fd, 1000, 1000, 90);
-    sleep(1);
-    moveMotors(fd, -500, -500, 90);
-    sleep(1);
-    stopMotors(fd);
+    while (running == 1)
+    {
+        //  Accepting the client connection 
+        int clientfd = accept_client(sockfd);
+        if (clientfd < 0) {
+            fprintf(stderr, "Error accepting client connection\n");
+            break;  
+        }
+
+        if(receive_commands(clientfd) < 0) {
+            fprintf(stderr, "Error handling client connection\n");
+            break;
+        }
+
+        
+
+    }
+    
+
+    // Closing the Socket
+    socket_close(&sockfd);
 
     return 0;
 }
