@@ -12,4 +12,5 @@ int setServo1(int fd, int angle) {
     int pulse = numMap(angle, 0, 180, 500, 2500);
     printf("Setting servo 1 to angle %d with pulse %d\n", angle, pulse);
     return writeReg(fd, CMD_SERVO1, (uint16_t)pulse);
+
 }

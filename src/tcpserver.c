@@ -1,6 +1,8 @@
 #include "tcpserver.h"
 #include "command_parser.h"
+#include "init.h"
 #include "motor.h"
+#include "imu.h"
 
 /**
  * @brief Singal handler for SIGINT(Interrupt Signal)
@@ -113,12 +115,12 @@ void *handle_client(void *arg) {
         memset(text, 0, sizeof(text));
 
         status = recv(clientfd, text, sizeof(text) - 1, 0);
+        // int fd = initI2CDevice(I2C_DEVICE, MDEV_ADDR);
 
         if (status > 0) {
             text[status] = '\0';   // make sure it's a proper string
             printf("Received from client: %c\n", text[0]);
-            moveMotors(1000, 1000, 90);
-            // parsedata(clientfd,text);
+            parsedata(text);
         } 
         else if (status == 0) {
             printf("Client disconnected\n");

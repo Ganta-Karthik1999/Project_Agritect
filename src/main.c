@@ -4,7 +4,7 @@
 #include "init.h"
 #include "servo.h"
 #include "tcpserver.h"
-
+#include "imu.h"
 
 
 volatile sig_atomic_t running = 1;
@@ -16,12 +16,13 @@ int main() {
 
     int sockfd =0, opt = 1;
 
-    //  Initilazing the TCP Socket check the socket_utils.c file for full functionality
+    //  Initilizing the TCP Socket check the socket_utils.c file for full functionality
     if (socket_init(&sockfd, opt) != 0) {
         fprintf(stderr, "Socket init failed\n");
         return 1;
     }
 
+    IMU_Init();
 
     while (running == 1)
     {
@@ -36,9 +37,11 @@ int main() {
             fprintf(stderr, "Error handling client connection\n");
             break;
         }
+        if (start_imu_thread() != 0) {
+            return -1;
+        }
 
-        
-
+        sleep(1); // Sleep for a while before the next read
     }
     
 
