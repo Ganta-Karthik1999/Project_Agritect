@@ -90,15 +90,15 @@ float* read_gyro_data(){
 
 
 void* imu_thread(void *arg) {
-    while (1) {
+    while (running) {
         float *acc = read_accel_data();
         float *gyro = read_gyro_data();
 
-        printf("ACC -> X: %.2f Y: %.2f Z: %.2f | ",
-               acc[0], acc[1], acc[2]);
+        // printf("ACC -> X: %.2f Y: %.2f Z: %.2f | ",
+        //        acc[0], acc[1], acc[2]);
 
-        printf("GYRO -> X: %.2f Y: %.2f Z: %.2f\n",
-               gyro[0], gyro[1], gyro[2]);
+        // printf("GYRO -> X: %.2f Y: %.2f Z: %.2f\n",
+        //        gyro[0], gyro[1], gyro[2]);
 
         ms_delay(10000); // Delay for 1 second
         }

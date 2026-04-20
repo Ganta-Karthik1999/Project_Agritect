@@ -11,6 +11,7 @@
 #include <string.h>
 
 extern volatile sig_atomic_t running;
+extern int motor_fd;
 extern volatile int active_connections;
 extern pthread_mutex_t count_mutex;
 

@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include "common.h"
+#include <signal.h>
 
 #define Device_Address 0x68	/*Device Address/Identifier for MPU6050*/
 
@@ -19,6 +21,7 @@
 #define GYRO_ZOUT_H  0x47
 
 extern int imufd;
+extern volatile sig_atomic_t running;
 
 short read_raw_data(int addr);
 

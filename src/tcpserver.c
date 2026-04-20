@@ -11,7 +11,21 @@
  */
 void handle_sigint(int sig) {
     running = 0;
+     if (motor_fd >= 0) {          // add this
+        stopMotors(motor_fd);
+    }
 }
+
+static void safe_stop_and_close(int clientfd)   // add this helper
+{
+    if (motor_fd >= 0) {
+        stopMotors(motor_fd);
+    }
+    if (clientfd >= 0) {
+        close(clientfd);
+    }
+}
+
 
 
 /**
@@ -111,24 +125,31 @@ void *handle_client(void *arg) {
     char text[255];
     int status;
 
-    while (1) {
+    while (running) {
         memset(text, 0, sizeof(text));
 
         status = recv(clientfd, text, sizeof(text) - 1, 0);
         // int fd = initI2CDevice(I2C_DEVICE, MDEV_ADDR);
 
         if (status > 0) {
-            text[status] = '\0';   // make sure it's a proper string
-            printf("Received from client: %c\n", text[0]);
+            text[status] = '\0';
+            text[strcspn(text, "\r\n")] = '\0';   // remove newline
+            printf("Received from client: %s\n", text);
             parsedata(text);
         } 
         else if (status == 0) {
             printf("Client disconnected\n");
+            safe_stop_and_close(clientfd);
             break;
         } 
         else {
+              if (errno == EINTR && !running) {
+                safe_stop_and_close(clientfd);   // add this
+                return NULL;
+            }
             perror("recv");
-            break;
+            safe_stop_and_close(clientfd);       // add this
+            return NULL;
         }
     }
 
@@ -160,7 +181,7 @@ int accept_client(int sockfd)
     clientfd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_len);
     if (clientfd < 0) {
         if (errno == EINTR) {
-            return 1;   // interrupted, caller can continue
+            return -1;   // interrupted, caller can continue
         }
         perror("accept");
         return -1;
@@ -178,6 +199,7 @@ int receive_commands(int clientfd) {
     int *client_fd_ptr = malloc(sizeof(int));
     if (client_fd_ptr == NULL) {
         perror("malloc");
+        safe_stop_and_close(clientfd);
         close(clientfd);
         return -1;
     }
@@ -187,6 +209,7 @@ int receive_commands(int clientfd) {
         perror("pthread_create");
         close(clientfd);
         free(client_fd_ptr);
+        safe_stop_and_close(clientfd);
         return -1;
     }
 
