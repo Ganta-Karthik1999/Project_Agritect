@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robot Detection Map</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .legend {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .box {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      margin-right: 5px;
+      vertical-align: middle;
+      border: 1px solid #333;
+    }
+
+    .detected {
+      background: #ffcc00;
+    }
+
+    .not-detected {
+      background: #4caf50;
+    }
+
+    .empty {
+      background: white;
+    }
+
+    .robot {
+      background: #2196f3;
+    }
+
+    #map {
+      display: grid;
+      grid-template-columns: repeat(10, 45px);
+      grid-template-rows: repeat(10, 45px);
+      gap: 3px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .cell {
+      width: 45px;
+      height: 45px;
+      border: 1px solid #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 6px;
+    }
+
+    .controls {
+      margin-top: 25px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      background: #222;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background: #444;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Robot Computer Vision Detection Map</h1>
+
+  <div class="legend">
+    <span class="box detected"></span> Detection = 1
+    &nbsp;&nbsp;
+    <span class="box not-detected"></span> Detection = 0
+    &nbsp;&nbsp;
+    <span class="box robot"></span> Robot Current Position
+  </div>
+
+  <div id="map"></div>
+
+  <div class="controls">
+    <button onclick="simulateNextDetection()">Simulate Next Detection</button>
+  </div>
+
+  <p id="status">Click the button to plot robot detection data.</p>
+
+  <script>
+    const rows = 10;
+    const cols = 10;
+    const map = document.getElementById("map");
+    const statusText = document.getElementById("status");
+
+    // Sample data: x, y, detection
+    // detection: 1 = object/color detected, 0 = not detected
+    const sampleData = [
+      { x: 0, y: 0, detection: 0 },
+      { x: 1, y: 0, detection: 0 },
+      { x: 2, y: 0, detection: 1 },
+      { x: 3, y: 0, detection: 0 },
+      { x: 4, y: 0, detection: 1 },
+      { x: 4, y: 1, detection: 1 },
+      { x: 4, y: 2, detection: 0 },
+      { x: 5, y: 2, detection: 0 },
+      { x: 6, y: 2, detection: 1 },
+      { x: 7, y: 2, detection: 0 },
+      { x: 7, y: 3, detection: 1 },
+      { x: 7, y: 4, detection: 0 },
+      { x: 8, y: 4, detection: 1 },
+      { x: 9, y: 4, detection: 0 }
+    ];
+
+    let currentIndex = 0;
+    let grid = [];
+
+    function createMap() {
+      map.innerHTML = "";
+      grid = [];
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell", "empty");
+          cell.id = `cell-${x}-${y}`;
+          cell.innerText = "";
+          map.appendChild(cell);
+          grid.push(cell);
+        }
+      }
+    }
+
+    function clearRobotMarker() {
+      document.querySelectorAll(".robot").forEach(cell => {
+        cell.classList.remove("robot");
+      });
+    }
+
+    function plotDetection(data) {
+      clearRobotMarker();
+
+      const cell = document.getElementById(`cell-${data.x}-${data.y}`);
+
+      if (!cell) return;
+
+      cell.classList.remove("empty", "detected", "not-detected");
+
+      if (data.detection === 1) {
+        cell.classList.add("detected");
+        cell.innerText = "1";
+      } else {
+        cell.classList.add("not-detected");
+        cell.innerText = "0";
+      }
+
+      cell.classList.add("robot");
+
+      statusText.innerText = `Robot Position: x=${data.x}, y=${data.y}, Detection=${data.detection}`;
+    }
+
+    function simulateNextDetection() {
+      if (currentIndex >= sampleData.length) {
+        statusText.innerText = "All sample detection data plotted.";
+        return;
+      }
+
+      plotDetection(sampleData[currentIndex]);
+      currentIndex++;
+    }
+
+    createMap();
+  </script>
+</body>
+</html>
